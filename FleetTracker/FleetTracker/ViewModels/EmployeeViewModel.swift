@@ -45,7 +45,7 @@ class EmployeeViewModel: ObservableObject{
     @Published var currentUser: EmployeeModel?
 //    @Published var latitude: [String] = []
     var currentDate = Date()
-    private let dateFormatter: DateFormatter = {
+    let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return formatter

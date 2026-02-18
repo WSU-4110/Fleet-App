@@ -17,7 +17,6 @@ struct EmployeeInputView: View {
         if vm.isSubmitted {
             VStack{
                 if let user = vm.currentUser {
-                    //StudentDetailView(student: user)
                     EmployeeMapView()
                 } else {
                     Text("error no data 1")
@@ -57,9 +56,32 @@ struct EmployeeInputView: View {
                             .cornerRadius(8)
                             .foregroundStyle(Color.black)
                             .font(.custom("Chalkduster", size: 20))
+//                        
+//                        Button {
+//                            vm.submitData()
+//                        } label: {
+//                            Text("Submit")
+//                                .foregroundColor(.black)
+//                                .frame(maxWidth: .infinity)
+//                                .padding()
+//                                .background(Color.white)
+//                                .cornerRadius(8)
+//                                .foregroundStyle(Color.black)
+//                                .font(.custom("Chalkduster", size: 20))
+//                        }
+                     
                         
+                        Spacer()
                         Button {
-                            vm.submitData()
+                            if let coordinate = locationManager.lastKnownLocation {
+                                vm.latitude = String(coordinate.latitude)
+                                vm.longitude = String(coordinate.longitude)
+                                vm.locationTime = vm.dateFormatter.string(from: Date())
+                                
+                                vm.submitData()
+                            } else {
+                                vm.submissionError = "Location not available"
+                            }
                         } label: {
                             Text("Submit")
                                 .foregroundColor(.black)
@@ -67,7 +89,6 @@ struct EmployeeInputView: View {
                                 .padding()
                                 .background(Color.white)
                                 .cornerRadius(8)
-                                .foregroundStyle(Color.black)
                                 .font(.custom("Chalkduster", size: 20))
                         }
                         
@@ -75,9 +96,6 @@ struct EmployeeInputView: View {
                             Text(error)
                                 .foregroundColor(.red)
                         }
-                        
-                        Spacer()
-                        
                         Button{
                             vm.signOut()
                         } label: {
