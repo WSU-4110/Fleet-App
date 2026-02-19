@@ -24,6 +24,17 @@ class SignInViewModel:ObservableObject{
             
         }
     }
+    func signUp(email:String, password:String){
+        Auth.auth().createUser(withEmail: email, password: password){[weak self]
+                result,error in
+                if let error=error{
+                    self?.errorMessage=error.localizedDescription
+                    return
+                }
+                self?.user=result?.user//update state on sucessful login
+                
+        }
+    }
 }
 struct LoginView:View {
     @State private var email:String=""
@@ -43,6 +54,9 @@ struct LoginView:View {
             .buttonStyle(.borderedProminent)
             if let errorMessage = ViewModel.errorMessage{
                 Text(errorMessage).foregroundStyle(Color.red)
+            }
+            Button("Sign up"){
+                ViewModel.signUp(email: email, password: password)
             }
         }
     }
