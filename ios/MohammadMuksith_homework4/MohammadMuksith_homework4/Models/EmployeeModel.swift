@@ -11,7 +11,7 @@ nonisolated
 struct EmployeeModel: Codable, Identifiable {
     var id: UUID = .init()
     var name: String
-    var latitude: [String]
+    var latitude: [String] 
     var longitude: [String]
     var locationTime: [String]
     
