@@ -31,10 +31,10 @@ struct EmployeeInputView: View {
         } else {
             ZStack{
                 if let coordinate = locationManager.lastKnownLocation {
-                    let location = CLLocationCoordinate2D(
-                        latitude: coordinate.latitude,
-                        longitude: coordinate.longitude
-                    )
+//                    let location = CLLocationCoordinate2D(
+//                        latitude: coordinate.latitude,
+//                        longitude: coordinate.longitude
+//                    )
                     Text("Latitude: \(coordinate.latitude)")
                     
                     Text("Longitude: \(coordinate.longitude)")
@@ -56,20 +56,7 @@ struct EmployeeInputView: View {
                             .cornerRadius(8)
                             .foregroundStyle(Color.black)
                             .font(.custom("Chalkduster", size: 20))
-//                        
-//                        Button {
-//                            vm.submitData()
-//                        } label: {
-//                            Text("Submit")
-//                                .foregroundColor(.black)
-//                                .frame(maxWidth: .infinity)
-//                                .padding()
-//                                .background(Color.white)
-//                                .cornerRadius(8)
-//                                .foregroundStyle(Color.black)
-//                                .font(.custom("Chalkduster", size: 20))
-//                        }
-                     
+//
                         
                         Spacer()
                         Button {

@@ -13,7 +13,3 @@ struct EmployeeDetailView: View {
         Text(employee.name)
     }
 }
-
-//#Preview {
-//    EmployeeDetailView()
-//}

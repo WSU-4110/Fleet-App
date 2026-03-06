@@ -45,12 +45,7 @@ struct EmployeeMapView: View {
         .padding()
         .onAppear() {
             locationManager.checkLocationAuthorization()
-//            vm.addLocation(locationTime: dateFormatter.string(from: currentDate), latitude: ("\(coordinate.latitude)"), longitude: ("\(coordinate.longitude)"))
         }
         
     }
 }
-
-//#Preview {
-//    EmployeeMapView()
-//}
