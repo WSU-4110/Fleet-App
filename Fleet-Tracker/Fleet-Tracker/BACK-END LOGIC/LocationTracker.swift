@@ -116,7 +116,7 @@ class LocationTrackerViewModel: ObservableObject {
 
         // ✅ Only save every 5 minutes
         let now = Date()
-        if let lastSaved = lastSavedDate, now.timeIntervalSince(lastSaved) < 300 {
+        if let lastSaved = lastSavedDate, now.timeIntervalSince(lastSaved) < 5 {
             return  // Skip if less than 5 minutes has passed
         }
         lastSavedDate = now
