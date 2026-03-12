@@ -1,13 +1,8 @@
 //
-
 //  USER_LOGIN.swift
-
 //  FleetTracker
-
 //
-
 //  Created by Maher Yousif on 2/18/26.
-
 //
 
 import Foundation
@@ -17,8 +12,24 @@ import FirebaseFirestore
 import Combine
 
 final class SignInViewModel: ObservableObject {
-    @Published var user: User?            // tracks our user
-    @Published var errorMessage: String?  // errors
+    @Published var user: User?
+    @Published var errorMessage: String?
+    
+    private var authStateListener: AuthStateDidChangeListenerHandle?
+
+    init() {
+        authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            DispatchQueue.main.async {
+                self?.user = user
+            }
+        }
+    }
+
+    deinit {
+        if let listener = authStateListener {
+            Auth.auth().removeStateDidChangeListener(listener)
+        }
+    }
 
     func signIn(email: String, password: String) {
         errorMessage = nil
@@ -32,7 +43,7 @@ final class SignInViewModel: ObservableObject {
             }
 
             DispatchQueue.main.async {
-                self?.user = result?.user // update state on successful login
+                self?.user = result?.user
             }
         }
     }
@@ -41,7 +52,9 @@ final class SignInViewModel: ObservableObject {
                 password: String,
                 name: String,
                 username: String) {
+
         errorMessage = nil
+
         Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
             if let error = error {
                 DispatchQueue.main.async {
@@ -52,10 +65,8 @@ final class SignInViewModel: ObservableObject {
 
             guard let createdUser = result?.user else { return }
             let uid = createdUser.uid
-            // Save extra user info in Firestore
 
             let db = Firestore.firestore()
-
             db.collection("users").document(uid).setData([
                 "name": name,
                 "username": username,
@@ -68,11 +79,20 @@ final class SignInViewModel: ObservableObject {
                     }
                     return
                 }
-                // Update UI state so RootView can switch immediately
+
                 DispatchQueue.main.async {
                     self?.user = createdUser
                 }
             }
+        }
+    }
+
+    func signOut() {
+        do {
+            try Auth.auth().signOut()
+            self.user = nil
+        } catch {
+            print("Sign out failed \(error)")
         }
     }
 }
@@ -80,39 +100,54 @@ final class SignInViewModel: ObservableObject {
 struct LoginView: View {
     @State private var email: String = ""
     @State private var password: String = ""
+    @State private var isEmployeeMode = false
+
     @ObservedObject var viewModel: SignInViewModel
+    @ObservedObject var employeeViewModel = EmployeeViewModel()
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 12) {
-                Text("Login with email")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-
-                TextField("Email", text: $email)
-                    .textFieldStyle(.roundedBorder)
-                    .textInputAutocapitalization(.none)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled(true)
-
-                SecureField("Password", text: $password)
-                    .textFieldStyle(.roundedBorder)
-                    .textInputAutocapitalization(.none)
-                    .autocorrectionDisabled(true)
-                
-                Button("Login") {
-                    viewModel.signIn(email: email, password: password)
+                Picker("Login Type", selection: $isEmployeeMode) {
+                    Text("Admin").tag(false)
+                    Text("Employee").tag(true)
                 }
-                .buttonStyle(.borderedProminent)
+                .pickerStyle(.segmented)
+                .padding(.bottom, 8)
 
-                if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
+                if isEmployeeMode {
+                    EmployeeLoginView(viewModel: employeeViewModel)
+                } else {
+                    Text("Login with email")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+                    TextField("Email", text: $email)
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.none)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled(true)
+
+                    SecureField("Password", text: $password)
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.none)
+                        .autocorrectionDisabled(true)
+
+                    Button("Login") {
+                        viewModel.signIn(email: email, password: password)
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
+                    }
+
+                    NavigationLink("Sign Up") {
+                        SignUpView(viewModel: viewModel)
+                    }
+                    .padding(.top, 8)
                 }
-                
-                NavigationLink("Sign Up") {
-                    SignUpView(viewModel: viewModel)
-                }
-                .padding(.top, 8)
             }
             .padding()
         }

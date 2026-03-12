@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SignUpView: View {
     @ObservedObject var viewModel: SignInViewModel
+
     @State private var name: String = ""
     @State private var username: String = ""
     @State private var email: String = ""
@@ -33,7 +34,7 @@ struct SignUpView: View {
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.words)
                         .autocorrectionDisabled(true)
-                    
+
                     TextField("Username", text: $username)
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.none)
@@ -42,14 +43,14 @@ struct SignUpView: View {
                     TextField("Email", text: $email)
                         .textFieldStyle(.roundedBorder)
                         .textInputAutocapitalization(.none)
-                        .keyboardType(.emailAddress)
-                        .textContentType(.emailAddress)
+                        //.keyboardType(.emailAddress)
+                        //.textContentType(.emailAddress)
                         .autocorrectionDisabled(true)
 
                     SecureField("Password (min 6 chars)", text: $password)
                         .textFieldStyle(.roundedBorder)
                         .textContentType(.newPassword)
-                    
+
                     Button("Create Account") {
                         viewModel.signUp(
                             email: email,
@@ -58,7 +59,6 @@ struct SignUpView: View {
                             username: username
                         )
                     }
-
                     .buttonStyle(.borderedProminent)
                     .disabled(!isFormValid)
 

@@ -49,22 +49,9 @@
 		D9E481172F3E24A1007E83E4 /* FleetTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FleetTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D9E4812B2F3E2E0E007E83E4 /* Exceptions for "FleetTracker" folder in "FleetTracker" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = D9E481162F3E24A1007E83E4 /* FleetTracker */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D9E481192F3E24A1007E83E4 /* FleetTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D9E4812B2F3E2E0E007E83E4 /* Exceptions for "FleetTracker" folder in "FleetTracker" target */,
-			);
 			path = FleetTracker;
 			sourceTree = "<group>";
 		};
