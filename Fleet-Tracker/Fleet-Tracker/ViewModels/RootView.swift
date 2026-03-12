@@ -8,14 +8,19 @@ struct RootView: View {
         Group {
             if viewModel.user != nil {
                 NavigationStack {
-                    MapViewWrapper()
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button("Logout") {
-                                    viewModel.signOut()
-                                }
+                    ZStack(alignment: .bottomLeading) {
+                        MapViewWrapper()
+
+                        PhotoUploadView()
+                            .padding()
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Logout") {
+                                viewModel.signOut()
                             }
                         }
+                    }
                 }
             } else {
                 LoginView(viewModel: viewModel)
