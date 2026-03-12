@@ -1,19 +1,48 @@
 import UIKit
 import GoogleMaps
 import SwiftUI
-class ViewController: UIViewController {
+import CoreLocation
+
+class ViewController: UIViewController, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+    var mapView: GMSMapView!
+    var hasInitialLocation = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
-        let mapView = GMSMapView.map(withFrame: self.view.frame, camera: camera)
+
+        let defaultCamera = GMSCameraPosition.camera(withLatitude: 0, longitude: 0, zoom: 6.0)
+        mapView = GMSMapView.map(withFrame: self.view.frame, camera: defaultCamera)
         self.view.addSubview(mapView)
+
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.requestWhenInUseAuthorization()
+        manager.startUpdatingLocation()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.first, !hasInitialLocation else {
+            return
+        }
+
+        hasInitialLocation = true
+
+        let coordinate = location.coordinate
+        let camera = GMSCameraPosition.camera(
+            withLatitude: coordinate.latitude,
+            longitude: coordinate.longitude,
+            zoom: 6.0
+        )
+        mapView.camera = camera
+
+        
         let marker = GMSMarker()
-        marker.position = CLLocationCoordinate2D(latitude: -33.86, longitude: 151.20)
-        marker.title = "Sydney"
-        marker.snippet = "Australia"
+        marker.position = coordinate
+        marker.title = "My Location"
+        marker.snippet = "Current position"
         marker.map = mapView
-  }
+    }
 }
 
 struct MapViewWrapper: UIViewControllerRepresentable {
@@ -21,6 +50,5 @@ struct MapViewWrapper: UIViewControllerRepresentable {
         ViewController()
     }
 
-    func updateUIViewController(_ uiViewController: ViewController, context: Context) {
-    }
+    func updateUIViewController(_ uiViewController: ViewController, context: Context) {}
 }

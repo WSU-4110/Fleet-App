@@ -81,7 +81,6 @@ final class SignInViewModel: ObservableObject {
         }
     }
 }
-
 struct LoginView: View {
     @State private var email: String = ""
     @State private var password: String = ""

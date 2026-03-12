@@ -1,4 +1,3 @@
-//
 //  FleetTrackerApp.swift
 //  FleetTracker
 //

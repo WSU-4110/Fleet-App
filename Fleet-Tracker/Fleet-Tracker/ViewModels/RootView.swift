@@ -9,7 +9,6 @@ struct RootView: View {
             if viewModel.user != nil {
                 NavigationStack {
                     MapViewWrapper()
-                        .navigationTitle("FleetTracker")
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button("Logout") {
