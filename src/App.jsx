@@ -4,6 +4,9 @@ import Signup from "./Signup";
 import ForgotPassword from "./ForgotPassword";
 import Dashboard from "./Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import EmployeePage from "./EmployeePage";
+import ExpensesPage from "./ExpensesPage";
+import MapPage from "./MapPage";
 
 function App() {
   return (
@@ -18,6 +21,32 @@ function App() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees"
+        element={
+          <ProtectedRoute>
+            <EmployeePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/expenses"
+        element={
+          <ProtectedRoute>
+            <ExpensesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/map"
+        element={
+          <ProtectedRoute>
+            <MapPage />
           </ProtectedRoute>
         }
       />

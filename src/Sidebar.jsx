@@ -4,7 +4,7 @@ import { auth } from "./firebase";
 import { Home, CreditCard, Users, Map, LogOut, Truck } from "lucide-react";
 
 const navItems = [
-  { label: "Home", path: "/", icon: Home },
+  { label: "Home", path: "/dashboard", icon: Home },
   { label: "Expenses", path: "/expenses", icon: CreditCard },
   { label: "Employees", path: "/employees", icon: Users },
   { label: "Map", path: "/map", icon: Map },

@@ -55,7 +55,8 @@ export default function Dashboard(){
 const styles={
   layout:{
     display:"flex",
-    height:"100vh"
+    height:"100vh",
+    fontFamily: "Inter, sans-serif"
   },
 
   main:{
