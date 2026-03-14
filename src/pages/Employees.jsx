@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import EmployeeRepository from "../repositories/EmployeeRepository";
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -10,8 +9,7 @@ export default function Employees() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "users"));
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const data = await EmployeeRepository.getAll();
         setEmployees(data);
       } catch (err) {
         setError("Failed to load employees.");
