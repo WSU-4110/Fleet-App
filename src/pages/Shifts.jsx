@@ -11,7 +11,7 @@ const PERIODS = [
   { label: "All", value: "all" },
 ];
 
-function getRangeStart(period) {
+export function getRangeStart(period) {
   if (period === "all") return null;
   const start = new Date();
   if (period === "today") {
@@ -34,7 +34,7 @@ function buildQuery(period, cursor) {
   return query(collection(db, "timesheets"), ...constraints);
 }
 
-function formatDuration(clockIn, clockOut) {
+export function formatDuration(clockIn, clockOut) {
   if (!clockIn || !clockOut) return "—";
   const ms = clockOut.toDate() - clockIn.toDate();
   if (ms < 0) return "—";
@@ -47,7 +47,7 @@ function formatDuration(clockIn, clockOut) {
   return `${seconds}s`;
 }
 
-function formatTimestamp(ts) {
+export function formatTimestamp(ts) {
   if (!ts) return null;
   const date = ts.toDate();
   const datePart = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
