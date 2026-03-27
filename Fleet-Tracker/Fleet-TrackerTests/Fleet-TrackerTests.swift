@@ -1,9 +1,9 @@
 import XCTest
-@testable import Fleet_Tracker
+@testable import Fleet-Tracker
 
 final class PhotoUploadViewModelTests: XCTestCase {
 
-    var viewModel: PhotoUploadViewModel!    
+    var viewModel: PhotoUploadViewModel!
 
     override func setUp() {
         super.setUp()
@@ -17,12 +17,12 @@ final class PhotoUploadViewModelTests: XCTestCase {
 
     func testHasSelectedImage_WhenNoImage_ReturnsFalse() {
         viewModel.selectedImage = nil
-        XCTAssertFalse(viewModel.hasSelectedImage(), "Should return false when no image is selected")
+        XCTAssertFalse(viewModel.hasSelectedImage())
     }
 
     func testHasSelectedImage_WhenImageSet_ReturnsTrue() {
         viewModel.selectedImage = UIImage(systemName: "star")
-        XCTAssertTrue(viewModel.hasSelectedImage(), "Should return true when an image is selected")
+        XCTAssertTrue(viewModel.hasSelectedImage())
     }
 
     func testResetState_ClearsAllValues() {
@@ -63,8 +63,8 @@ final class PhotoUploadViewModelTests: XCTestCase {
         let uid = "testUser123"
         let filename = viewModel.generateFilename(uid: uid)
 
-        XCTAssertTrue(filename.hasPrefix(uid), "Filename should start with the UID")
-        XCTAssertTrue(filename.hasSuffix(".jpg"), "Filename should end with .jpg")
+        XCTAssertTrue(filename.hasPrefix(uid))
+        XCTAssertTrue(filename.hasSuffix(".jpg"))
     }
 
     func testIsValidImage_WithValidImage_ReturnsTrue() {
