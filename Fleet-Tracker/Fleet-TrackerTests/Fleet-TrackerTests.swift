@@ -1,5 +1,6 @@
 import XCTest
-@testable import Fleet-Tracker
+import UIKit
+@testable import Fleet_Tracker
 
 final class PhotoUploadViewModelTests: XCTestCase {
 
