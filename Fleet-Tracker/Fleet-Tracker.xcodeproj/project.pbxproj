@@ -34,14 +34,30 @@
 		C891C3232F60F918009C77CF /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = C891C3222F60F918009C77CF /* FirebaseStorageCombine-Community */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D980ABD82F76138600267529 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C891C2CA2F60F763009C77CF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C891C2D12F60F763009C77CF;
+			remoteInfo = "Fleet-Tracker";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		C891C2D22F60F763009C77CF /* Fleet-Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Fleet-Tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D980ABD42F76138600267529 /* Fleet-TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Fleet-TrackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C891C2D42F60F763009C77CF /* Fleet-Tracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Fleet-Tracker";
+			sourceTree = "<group>";
+		};
+		D980ABD52F76138600267529 /* Fleet-TrackerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Fleet-TrackerTests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +95,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D980ABD12F76138600267529 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -86,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				C891C2D42F60F763009C77CF /* Fleet-Tracker */,
+				D980ABD52F76138600267529 /* Fleet-TrackerTests */,
 				C891C2F32F60F918009C77CF /* Frameworks */,
 				C891C2D32F60F763009C77CF /* Products */,
 			);
@@ -95,6 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				C891C2D22F60F763009C77CF /* Fleet-Tracker.app */,
+				D980ABD42F76138600267529 /* Fleet-TrackerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -156,6 +181,29 @@
 			productReference = C891C2D22F60F763009C77CF /* Fleet-Tracker.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D980ABD32F76138600267529 /* Fleet-TrackerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D980ABDC2F76138600267529 /* Build configuration list for PBXNativeTarget "Fleet-TrackerTests" */;
+			buildPhases = (
+				D980ABD02F76138600267529 /* Sources */,
+				D980ABD12F76138600267529 /* Frameworks */,
+				D980ABD22F76138600267529 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D980ABD92F76138600267529 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D980ABD52F76138600267529 /* Fleet-TrackerTests */,
+			);
+			name = "Fleet-TrackerTests";
+			packageProductDependencies = (
+			);
+			productName = "Fleet-TrackerTests";
+			productReference = D980ABD42F76138600267529 /* Fleet-TrackerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -163,11 +211,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2620;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					C891C2D12F60F763009C77CF = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					D980ABD32F76138600267529 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = C891C2D12F60F763009C77CF;
 					};
 				};
 			};
@@ -190,12 +242,20 @@
 			projectRoot = "";
 			targets = (
 				C891C2D12F60F763009C77CF /* Fleet-Tracker */,
+				D980ABD32F76138600267529 /* Fleet-TrackerTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C891C2D02F60F763009C77CF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D980ABD22F76138600267529 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -212,7 +272,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D980ABD02F76138600267529 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D980ABD92F76138600267529 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C891C2D12F60F763009C77CF /* Fleet-Tracker */;
+			targetProxy = D980ABD82F76138600267529 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C891C2DD2F60F763009C77CF /* Debug */ = {
@@ -402,6 +477,48 @@
 			};
 			name = Release;
 		};
+		D980ABDA2F76138600267529 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4V7T96VN9D;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "n.Fleet-TrackerTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Fleet-Tracker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Fleet-Tracker";
+			};
+			name = Debug;
+		};
+		D980ABDB2F76138600267529 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4V7T96VN9D;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "n.Fleet-TrackerTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Fleet-Tracker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Fleet-Tracker";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -419,6 +536,15 @@
 			buildConfigurations = (
 				C891C2E02F60F763009C77CF /* Debug */,
 				C891C2E12F60F763009C77CF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D980ABDC2F76138600267529 /* Build configuration list for PBXNativeTarget "Fleet-TrackerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D980ABDA2F76138600267529 /* Debug */,
+				D980ABDB2F76138600267529 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
