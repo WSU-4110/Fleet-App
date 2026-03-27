@@ -1,12 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "./firebase";
-import { Home, CreditCard, Users, Map, LogOut, Truck } from "lucide-react";
+import { Home, CreditCard, Users, Map, LogOut, Truck, Clock } from "lucide-react";
 
 const navItems = [
   { label: "Home", path: "/", icon: Home },
   { label: "Expenses", path: "/expenses", icon: CreditCard },
   { label: "Employees", path: "/employees", icon: Users },
+  { label: "Shifts", path: "/shifts", icon: Clock },
   { label: "Map", path: "/map", icon: Map },
 ];
 

@@ -4,6 +4,7 @@ import Layout from "./Layout";
 import Home from "./pages/Home";
 import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
+import Shifts from "./pages/Shifts";
 import Map from "./pages/Map";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="employees" element={<Employees />} />
+          <Route path="shifts" element={<Shifts />} />
           <Route path="map" element={<Map />} />
         </Route>
       </Routes>
