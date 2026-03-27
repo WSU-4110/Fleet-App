@@ -112,18 +112,22 @@ final class AddLocationTest: XCTestCase {
             XCTAssertEqual(latCount, lonCount)
         }
         
-        func testMultipleLocationsAdded() {
-            var user = UsersModel()
-            vm.currentUser = user
-            vm.lastSavedDate = Date(timeIntervalSinceNow: -301)
-            
-            vm.addLocation(locationTime: "2024-01-01 10:00:00", latitude: "42.1", longitude: "-83.1")
-            vm.addLocation(locationTime: "2024-01-01 10:05:00", latitude: "42.2", longitude: "-83.2")
-            
-            XCTAssertEqual(vm.currentUser?.locationTime.count, 2)
-            XCTAssertEqual(vm.currentUser?.latitude.count, 2)
-            XCTAssertEqual(vm.currentUser?.longitude.count, 2)
-        }
+    func testMultipleLocationsAdded() {
+        var user = UsersModel()
+        vm.currentUser = user
+        
+        // First location
+        vm.lastSavedDate = Date(timeIntervalSinceNow: -301)  // 5+ minutes ago
+        vm.addLocation(locationTime: "2024-01-01 10:00:00", latitude: "42.1", longitude: "-83.1")
+        
+        // Second location - reset lastSavedDate again
+        vm.lastSavedDate = Date(timeIntervalSinceNow: -301)  // 5+ minutes ago
+        vm.addLocation(locationTime: "2024-01-01 10:05:00", latitude: "42.2", longitude: "-83.2")
+        
+        XCTAssertEqual(vm.currentUser?.locationTime.count, 2)
+        XCTAssertEqual(vm.currentUser?.latitude.count, 2)
+        XCTAssertEqual(vm.currentUser?.longitude.count, 2)
+    }
         
         func testAddLocationWithEmptyStrings() {
             var user = UsersModel()
