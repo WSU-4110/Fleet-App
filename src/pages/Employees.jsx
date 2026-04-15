@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
+import { useAuth } from "../AuthContext";
 
 export default function Employees() {
+  const { businessId } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,8 +17,9 @@ export default function Employees() {
   const [deleting, setDeleting] = useState(false);
 
   const fetchEmployees = async () => {
+    if (!businessId) return;
     try {
-      const snapshot = await getDocs(collection(db, "users"));
+      const snapshot = await getDocs(collection(db, "businesses", businessId, "employees"));
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setEmployees(data);
     } catch (err) {
@@ -28,7 +31,7 @@ export default function Employees() {
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [businessId]);
 
   const handleCreate = async () => {
     if (!form.username.trim() || !form.name.trim() || !form.email.trim()) {
@@ -38,7 +41,7 @@ export default function Employees() {
     setSaving(true);
     setFormError("");
     try {
-      await addDoc(collection(db, "users"), {
+      await addDoc(collection(db, "businesses", businessId, "employees"), {
         username: form.username.trim(),
         name: form.name.trim(),
         email: form.email.trim(),
@@ -74,7 +77,7 @@ export default function Employees() {
     if (!window.confirm(`Delete ${selected.size} employee(s)?`)) return;
     setDeleting(true);
     try {
-      await Promise.all([...selected].map((id) => deleteDoc(doc(db, "users", id))));
+      await Promise.all([...selected].map((id) => deleteDoc(doc(db, "businesses", businessId, "employees", id))));
       setEmployees((prev) => prev.filter((emp) => !selected.has(emp.id)));
       setSelected(new Set());
       setSelectMode(false);

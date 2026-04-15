@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { collection, query, orderBy, limit, startAfter, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
+import { useAuth } from "../AuthContext";
 
 const PAGE_SIZE = 10;
 
@@ -26,12 +27,12 @@ function getRangeStart(period) {
   return Timestamp.fromDate(start);
 }
 
-function buildQuery(period, cursor) {
+function buildQuery(businessId, period, cursor) {
   const rangeStart = getRangeStart(period);
   const constraints = [orderBy("clockIn", "desc"), limit(PAGE_SIZE + 1)];
   if (rangeStart) constraints.unshift(where("clockIn", ">=", rangeStart));
   if (cursor) constraints.push(startAfter(cursor));
-  return query(collection(db, "timesheets"), ...constraints);
+  return query(collection(db, "businesses", businessId, "timesheets"), ...constraints);
 }
 
 function formatDuration(clockIn, clockOut) {
@@ -56,6 +57,7 @@ function formatTimestamp(ts) {
 }
 
 export default function Shifts() {
+  const { businessId } = useAuth();
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -65,10 +67,11 @@ export default function Shifts() {
   const [hasMore, setHasMore] = useState(false);
 
   const fetchPage = useCallback(async (period, cursor, stack) => {
+    if (!businessId) return;
     setLoading(true);
     setError("");
     try {
-      const snap = await getDocs(buildQuery(period, cursor));
+      const snap = await getDocs(buildQuery(businessId, period, cursor));
       const docs = snap.docs.slice(0, PAGE_SIZE);
       setShifts(docs.map((d) => ({ id: d.id, ...d.data() })));
       setHasMore(snap.docs.length > PAGE_SIZE);
@@ -79,9 +82,9 @@ export default function Shifts() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [businessId]);
 
-  // Reset to page 1 whenever period changes
+  // Reset to page 1 whenever period or businessId changes
   useEffect(() => {
     fetchPage(period, null, []);
   }, [period, fetchPage]);
