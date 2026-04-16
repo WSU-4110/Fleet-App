@@ -1,23 +1,26 @@
-//
 //  FleetTrackerApp.swift
 //  FleetTracker
 //
-//  Created by Ashley Li on 3/27/26.
+//  Created by Mohammad Muksith on 2/12/26.
 //
 
 import SwiftUI
-import FirebaseCore
+import Firebase
+import FirebaseAuth
+import Combine
+import FirebaseFirestore
+import GoogleMaps
 
 @main
 struct FleetTrackerApp: App {
-    
-    init() {
+    init(){
         FirebaseApp.configure()
+        GMSServices.provideAPIKey("AIzaSyBpW-EBzPtp8Rpbg5TaUoIcmCj70TVoT_c")
     }
-    
     var body: some Scene {
         WindowGroup {
             RootView()
+            
         }
     }
 }
