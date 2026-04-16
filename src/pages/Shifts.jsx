@@ -67,7 +67,10 @@ export default function Shifts() {
   const [hasMore, setHasMore] = useState(false);
 
   const fetchPage = useCallback(async (period, cursor, stack) => {
-    if (!businessId) return;
+    if (!businessId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError("");
     try {

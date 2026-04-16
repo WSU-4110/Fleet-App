@@ -17,7 +17,10 @@ export default function Employees() {
   const [deleting, setDeleting] = useState(false);
 
   const fetchEmployees = async () => {
-    if (!businessId) return;
+    if (!businessId) {
+      setLoading(false);
+      return;
+    }
     try {
       const snapshot = await getDocs(collection(db, "businesses", businessId, "employees"));
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
