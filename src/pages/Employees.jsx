@@ -9,7 +9,7 @@ export default function Employees() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ username: "", name: "", email: "" });
+  const [form, setForm] = useState({ username: "" });
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
@@ -37,8 +37,8 @@ export default function Employees() {
   }, [businessId]);
 
   const handleCreate = async () => {
-    if (!form.username.trim() || !form.name.trim() || !form.email.trim()) {
-      setFormError("All fields are required.");
+    if (!form.username.trim()) {
+      setFormError("Username is required.");
       return;
     }
     setSaving(true);
@@ -46,10 +46,8 @@ export default function Employees() {
     try {
       await addDoc(collection(db, "businesses", businessId, "employees"), {
         username: form.username.trim(),
-        name: form.name.trim(),
-        email: form.email.trim(),
       });
-      setForm({ username: "", name: "", email: "" });
+      setForm({ username: "" });
       setShowModal(false);
       await fetchEmployees();
     } catch (err) {
@@ -97,7 +95,7 @@ export default function Employees() {
   };
 
   const allSelected = employees.length > 0 && selected.size === employees.length;
-  const colSpan = selectMode ? 4 : 3;
+  const colSpan = selectMode ? 2 : 1;
 
   return (
     <div>
@@ -153,8 +151,6 @@ export default function Employees() {
                 </th>
               )}
               <th style={styles.th}>Username</th>
-              <th style={styles.th}>Name</th>
-              <th style={styles.th}>Email</th>
             </tr>
           </thead>
           <tbody>
@@ -194,16 +190,10 @@ export default function Employees() {
                     <td style={styles.td}>
                       <div style={styles.usernameCell}>
                         <div style={styles.avatar}>
-                          {(emp.name || emp.username || "?").charAt(0).toUpperCase()}
+                          {(emp.username || "?").charAt(0).toUpperCase()}
                         </div>
                         <span style={styles.username}>@{emp.username}</span>
                       </div>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.name}>{emp.name}</span>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.email}>{emp.email}</span>
                     </td>
                   </tr>
                 );
@@ -225,22 +215,8 @@ export default function Employees() {
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
-            <label style={styles.label}>Name</label>
-            <input
-              style={styles.input}
-              placeholder="e.g. John Smith"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            <label style={styles.label}>Email</label>
-            <input
-              style={styles.input}
-              placeholder="e.g. john@example.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
             <div style={styles.modalActions}>
-              <button style={styles.cancelBtn} onClick={() => { setShowModal(false); setForm({ username: "", name: "", email: "" }); }}>
+              <button style={styles.cancelBtn} onClick={() => { setShowModal(false); setForm({ username: "" }); }}>
                 Cancel
               </button>
               <button style={styles.saveBtn} onClick={handleCreate} disabled={saving}>
@@ -402,15 +378,6 @@ const styles = {
     fontSize: "14px",
     fontWeight: "600",
     color: "#1e3a8a",
-  },
-  name: {
-    fontSize: "14px",
-    fontWeight: "500",
-    color: "#111827",
-  },
-  email: {
-    fontSize: "14px",
-    color: "#6b7280",
   },
   overlay: {
     position: "fixed",
