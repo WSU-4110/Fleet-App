@@ -1,12 +1,4 @@
 //
-//  EmployeeViewModel 2.swift
-//  Fleet-Tracker
-//
-//  Created by Maher Yousif on 4/15/26.
-//
-
-
-//
 //  EmployeeViewModel.swift
 //  Fleet-Tracker
 //
@@ -14,6 +6,7 @@
 import Foundation
 import Combine
 import CoreLocation
+import MapKit
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
@@ -39,11 +32,38 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
     // Injected by RootView so clock events write notifications
     var notifVM: NotificationViewModel?
 
+    // Mileage tracking
+    let mileageTracker = MileageTracker()
+
     override init() {
         super.init()
         locationManager.delegate        = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
+        restoreSessionIfNeeded()
+    }
+
+    // Restore employee session on app relaunch
+    private func restoreSessionIfNeeded() {
+        guard Auth.auth().currentUser != nil else { return }
+        // Only restore if last role was employee
+        guard UserDefaults.standard.string(forKey: "lastRole") == "employee" else { return }
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        findAndFetchEmployee(uid: uid)
+    }
+
+    // ── Geocoding helper ─────────────────────────────────────────────────────
+
+    private func reverseGeocode(location: CLLocation, completion: @escaping (String?) -> Void) {
+        // CLGeocoder deprecated in iOS 26 — acceptable for current deployment target
+        CLGeocoder().reverseGeocodeLocation(location) { marks, _ in
+            if let p = marks?.first {
+                let parts = [p.subThoroughfare, p.thoroughfare, p.locality].compactMap { $0 }
+                completion(parts.isEmpty ? nil : parts.joined(separator: " "))
+            } else {
+                completion(nil)
+            }
+        }
     }
 
     // ── Date/time helpers ─────────────────────────────────────────────────────
@@ -154,6 +174,7 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
                             if let err {
                                 self.errorMessage = err.localizedDescription
                             } else {
+                                UserDefaults.standard.set("employee", forKey: "lastRole")
                                 self.businessId = bid
                                 self.employee   = EmployeeModel(uid: uid, name: username)
                             }
@@ -178,6 +199,7 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
                 return
             }
             guard let uid = result?.user.uid else { return }
+            UserDefaults.standard.set("employee", forKey: "lastRole")
             self?.findAndFetchEmployee(uid: uid)
         }
     }
@@ -223,9 +245,13 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
         }
     }
 
+    private var employeeListener: ListenerRegistration?
+
     func fetchEmployee(uid: String) {
         guard let ref = employeesRef() else { return }
-        ref.document(uid).getDocument { [weak self] doc, error in
+        // Use a live listener so vehicle changes, pin changes etc update in real time
+        employeeListener?.remove()
+        employeeListener = ref.document(uid).addSnapshotListener { [weak self] doc, error in
             guard let self else { return }
 
             if let error {
@@ -237,17 +263,37 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
                 DispatchQueue.main.async { self.errorMessage = "Employee record not found." }
                 return
             }
+            // Restore location tracking if they were clocked in
+            let wasClocked = data["isClockedIn"] as? Bool ?? false
+            if wasClocked {
+                self.locationManager.startUpdatingLocation()
+            }
 
             DispatchQueue.main.async {
-                let pin    = data["pinEmoji"]    as? String ?? "🚗"
-                let imgURL = data["pinImageURL"] as? String
-                self.employee    = EmployeeModel(uid: uid,
-                                                 name: data["username"] as? String ?? "",
-                                                 pinEmoji: pin,
-                                                 pinImageURL: imgURL)
-                self.isClockedIn = data["isClockedIn"] as? Bool ?? false
+                let pin        = data["pinEmoji"]         as? String ?? "🚗"
+                let imgURL     = data["pinImageURL"]      as? String
+                let vehicleId  = data["assignedVehicleId"] as? String
+                let lat        = data["latitude"]          as? Double
+                let lon        = data["longitude"]         as? Double
+                let clockedIn  = data["isClockedIn"]       as? Bool ?? false
+
+                self.employee = EmployeeModel(
+                    uid:               uid,
+                    name:              data["username"]    as? String ?? "",
+                    pinEmoji:          pin,
+                    pinImageURL:       imgURL,
+                    isClockedIn:       clockedIn,
+                    latitude:          lat,
+                    longitude:         lon,
+                    assignedVehicleId: vehicleId
+                )
+                self.isClockedIn = clockedIn
                 if let ts = data["clockInTime"] as? Timestamp {
                     self.clockInTime = ts.dateValue()
+                }
+                // Save vehicle to UserDefaults so it survives view recreation
+                if let vid = vehicleId {
+                    UserDefaults.standard.set(vid, forKey: "lastVehicleId_\(uid)")
                 }
                 self.locationManager.startUpdatingLocation()
             }
@@ -257,7 +303,9 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
     // ── Sign out ──────────────────────────────────────────────────────────────
 
     func signOut() {
+        UserDefaults.standard.removeObject(forKey: "lastRole")
         locationManager.stopUpdatingLocation()
+        employeeListener?.remove()
         allEmployeesListener?.remove()
         try? Auth.auth().signOut()
         employee          = nil
@@ -316,11 +364,15 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
 
         eRef.document(uid).updateData([
             "isClockedIn": true,
-            "clockInTime": Timestamp(date: now)
+            "clockInTime": Timestamp(date: now),
+            "uid":         uid   // ensure uid field always exists for admin watcher
         ]) { [weak self] _ in
             DispatchQueue.main.async {
                 self?.isClockedIn = true
                 self?.clockInTime = now
+                self?.mileageTracker.startTracking()
+                // Ensure location updates are running
+                self?.locationManager.startUpdatingLocation()
                 // Notify admin
                 if let bid = self?.businessId, let name = self?.employee?.name {
                     self?.notifVM?.writeClockIn(businessId: bid, employeeName: name, uid: uid)
@@ -374,18 +426,18 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
         // Reverse geocode last location and save address to Firestore
         if let lat = lastLat, let lon = lastLon {
             let loc = CLLocation(latitude: lat, longitude: lon)
-            CLGeocoder().reverseGeocodeLocation(loc) { [weak self] marks, _ in
-                guard let self else { return }
-                if let p = marks?.first {
-                    let parts = [p.subThoroughfare, p.thoroughfare, p.locality].compactMap { $0 }
-                    let addr  = parts.isEmpty ? "Unknown" : parts.joined(separator: " ")
-                    empUpdate["lastKnownAddress"] = addr
-                }
-                eRef.document(uid).updateData(empUpdate)
+            reverseGeocode(location: loc) { addr in
+                var update = empUpdate
+                if let addr { update["lastKnownAddress"] = addr }
+                eRef.document(uid).updateData(update)
             }
         } else {
             eRef.document(uid).updateData(empUpdate)
         }
+
+        // Stop mileage tracking and save summary
+        let mileageSummary = mileageTracker.stopTracking()
+        mileageTracker.reset()
 
         // Update local state
         isClockedIn = false
@@ -394,6 +446,14 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
         if let bid = businessId, let name = employee?.name {
             notifVM?.writeClockOut(businessId: bid, employeeName: name, uid: uid)
         }
+
+        // Save mileage summary to employee doc and timesheet
+        let mileageData: [String: Any] = [
+            "lastShiftMiles":        mileageSummary.totalMiles,
+            "lastShiftBreaks":       mileageSummary.breakCount,
+            "lastShiftBreakMinutes": mileageSummary.totalBreakMinutes
+        ]
+        eRef.document(uid).updateData(mileageData)
 
         // Build timesheet clock-out data
         var clockOutData: [String: Any] = ["clockOut": Timestamp(date: now)]
@@ -404,6 +464,9 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
         if let vid = lastVehicleId  { clockOutData["vehicleId"]      = vid }
         if let lat = lastLat        { clockOutData["lastLatitude"]    = lat }
         if let lon = lastLon        { clockOutData["lastLongitude"]   = lon }
+        clockOutData["totalMiles"]        = mileageSummary.totalMiles
+        clockOutData["breakCount"]        = mileageSummary.breakCount
+        clockOutData["breakMinutes"]      = mileageSummary.totalBreakMinutes
 
         if let tsID = activeTimesheetID {
             tRef.document(tsID).updateData(clockOutData)
@@ -425,16 +488,31 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
               let uid  = employee?.uid,
               let ref  = employeesRef() else { return }
         let coord = loc.coordinate
-        // speed is in m/s — convert to km/h, clamp negatives to 0
-        let speedKPH = max(0, loc.speed * 3.6)
         var locData: [String: Any] = [
             "latitude":  coord.latitude,
             "longitude": coord.longitude,
-            "speedKPH":  speedKPH,
             "lastSeen":  FieldValue.serverTimestamp()
         ]
+        // loc.speed is -1 when unavailable — only write real speed values
+        if loc.speed >= 0 {
+            locData["speedMPH"] = loc.speed * 2.23694
+        }
         for (k, v) in dateFields(from: Date(), prefix: "lastSeen") { locData[k] = v }
         ref.document(uid).updateData(locData)
+
+        // Keep local model in sync so clockOut can read the last position
+        DispatchQueue.main.async { [weak self] in
+            self?.employee?.latitude  = coord.latitude
+            self?.employee?.longitude = coord.longitude
+            if loc.speed >= 0 {
+                self?.employee?.speedMPH = loc.speed * 2.23694
+            }
+        }
+
+        // Feed into mileage tracker — only counts when clocked in and driving
+        if isClockedIn {
+            mileageTracker.processLocation(loc)
+        }
     }
 
     // ── Vehicle assignment ────────────────────────────────────────────────────
@@ -455,10 +533,82 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
 
     // ── Admin: watch all employees ────────────────────────────────────────────
 
+    private func parseEmployeeDocs(_ docs: [QueryDocumentSnapshot], businessId: String) {
+        var result: [EmployeeModel] = []
+        for doc in docs {
+            let d = doc.data()
+            // uid may be stored as field OR is the document ID itself
+            let uid  = d["uid"] as? String ?? doc.documentID
+            guard !uid.isEmpty,
+                  let name = d["username"] as? String else { continue }
+
+            let clockedIn   = d["isClockedIn"] as? Bool ?? false
+            let clockInTime = (d["clockInTime"] as? Timestamp)?.dateValue()
+
+            let clockOutTime: Date?
+            if let ts = d["clockOutTime"] as? Timestamp {
+                clockOutTime = ts.dateValue()
+            } else if let dateStr = d["clockOutDate"] as? String,
+                      let timeStr = d["clockOutTime"] as? String {
+                let df = DateFormatter()
+                df.locale = Locale(identifier: "en_US_POSIX")
+                df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                clockOutTime = df.date(from: "\(dateStr) \(timeStr)")
+            } else {
+                clockOutTime = nil
+            }
+
+            let lat: Double?
+            let lon: Double?
+            let vehicleId: String?
+            if clockedIn {
+                lat       = d["latitude"]          as? Double
+                lon       = d["longitude"]         as? Double
+                vehicleId = d["assignedVehicleId"] as? String
+            } else {
+                lat       = d["lastKnownLatitude"]  as? Double ?? d["latitude"]  as? Double
+                lon       = d["lastKnownLongitude"] as? Double ?? d["longitude"] as? Double
+                vehicleId = d["lastKnownVehicleId"] as? String ?? d["assignedVehicleId"] as? String
+            }
+
+            let lastAddress = d["lastKnownAddress"] as? String
+            let speedMPH: Double?
+            if clockedIn { speedMPH = d["speedMPH"] as? Double ?? d["speedKPH"] as? Double }
+            else         { speedMPH = nil }
+
+            result.append(EmployeeModel(
+                uid:               uid,
+                name:              name,
+                pinEmoji:          d["pinEmoji"]    as? String ?? "🚗",
+                pinImageURL:       d["pinImageURL"] as? String,
+                isClockedIn:       clockedIn,
+                clockInTime:       clockInTime,
+                clockOutTime:      clockOutTime,
+                latitude:          lat,
+                longitude:         lon,
+                lastAddress:       lastAddress,
+                speedMPH:          speedMPH,
+                assignedVehicleId: vehicleId,
+                lastShiftMiles:    d["lastShiftMiles"] as? Double
+            ))
+        }
+        allEmployees = result
+    }
+
     func startWatchingAllEmployees(businessId: String) {
+        // Remove existing listener before starting a new one
+        allEmployeesListener?.remove()
         self.businessId = businessId
-        allEmployeesListener = db.collection("businesses").document(businessId)
-            .collection("employees")
+
+        let ref = db.collection("businesses").document(businessId).collection("employees")
+
+        // One-time fetch first — populates data immediately without waiting for listener
+        ref.getDocuments { [weak self] snapshot, _ in
+            guard let self, let docs = snapshot?.documents else { return }
+            DispatchQueue.main.async { self.parseEmployeeDocs(docs, businessId: businessId) }
+        }
+
+        allEmployeesListener = ref
             .addSnapshotListener { [weak self] snapshot, error in
                 if let error {
                     print("Employee listener error: \(error.localizedDescription)")
@@ -469,12 +619,26 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
                     var result: [EmployeeModel] = []
                     for doc in docs {
                         let d = doc.data()
-                        guard let uid  = d["uid"]      as? String,
-                              let name = d["username"]  as? String else { continue }
+                        let uid  = d["uid"] as? String ?? doc.documentID
+                        guard !uid.isEmpty,
+                              let name = d["username"] as? String else { continue }
 
-                        let clockedIn    = d["isClockedIn"]  as? Bool ?? false
-                        let clockInTime  = (d["clockInTime"]  as? Timestamp)?.dateValue()
-                        let clockOutTime = (d["clockOutTime"] as? Timestamp)?.dateValue()
+                        let clockedIn   = d["isClockedIn"] as? Bool ?? false
+                        let clockInTime = (d["clockInTime"] as? Timestamp)?.dateValue()
+
+                        // clockOutTime may be a Timestamp or reconstructed from date+time strings
+                        let clockOutTime: Date?
+                        if let ts = d["clockOutTime"] as? Timestamp {
+                            clockOutTime = ts.dateValue()
+                        } else if let dateStr = d["clockOutDate"] as? String,
+                                  let timeStr = d["clockOutTime"] as? String {
+                            let df = DateFormatter()
+                            df.locale = Locale(identifier: "en_US_POSIX")
+                            df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                            clockOutTime = df.date(from: "\(dateStr) \(timeStr)")
+                        } else {
+                            clockOutTime = nil
+                        }
 
                         let lat: Double?
                         let lon: Double?
@@ -484,14 +648,15 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
                             lon       = d["longitude"]         as? Double
                             vehicleId = d["assignedVehicleId"] as? String
                         } else {
-                            lat       = d["lastKnownLatitude"]  as? Double
-                            lon       = d["lastKnownLongitude"] as? Double
-                            vehicleId = d["lastKnownVehicleId"] as? String
+                            // Fall back to latitude/longitude if lastKnown fields not yet written
+                            lat       = d["lastKnownLatitude"]  as? Double ?? d["latitude"]  as? Double
+                            lon       = d["lastKnownLongitude"] as? Double ?? d["longitude"] as? Double
+                            vehicleId = d["lastKnownVehicleId"] as? String ?? d["assignedVehicleId"] as? String
                         }
 
                         let lastAddress  = d["lastKnownAddress"] as? String
                         let speedKPH: Double?
-                        if clockedIn { speedKPH = d["speedKPH"] as? Double }
+                        if clockedIn { speedKPH = d["speedMPH"] as? Double ?? d["speedKPH"] as? Double }  // support both field names
                         else         { speedKPH = nil }
 
                         result.append(EmployeeModel(
@@ -505,8 +670,9 @@ final class EmployeeViewModel: NSObject, ObservableObject, CLLocationManagerDele
                             latitude:          lat,
                             longitude:         lon,
                             lastAddress:       lastAddress,
-                            speedKPH:          speedKPH,
-                            assignedVehicleId: vehicleId
+                            speedMPH:          speedKPH,
+                            assignedVehicleId: vehicleId,
+                            lastShiftMiles:    d["lastShiftMiles"] as? Double
                         ))
                     }
                     self?.allEmployees = result
